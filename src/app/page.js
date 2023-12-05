@@ -164,62 +164,71 @@ export default function Home() {
   };
 
   return (
-    <main className=" bg-slate-400 w-full h-full flex min-h-screen flex-col items-center justify-between md:px-5 lg:px-10">
-      <div className="flex flex-col items-center justify-between w-full h-full">
-        <div className="flex items-center justify-between p-10 gap-3">
-          <Input
-            className="z-40 mx-auto my-auto"
-            type="file"
-            accept="audio/*"
-            onChange={(e) => {
-              setfile(e.target.files[0]);
-            }}
-          ></Input>
-          <select
-            name="visualizers"
-            onChange={(e) => changeFn("type", e.target.value)}
-          >
-            <option value={"straitLine"}>Line</option>
-            <option value={"straitBar"}>Bar</option>
-          </select>
-        </div>
-        <div className=" w-full items-center justify-between" ref={canvasFrame}>
-          <canvas
-            className="h-full w-full"
-            ref={previewCanvas}
-            height={height}
-            width={width}
-          ></canvas>
-
-          {file && (
-            <div className="relative inline-block top-[-60px] mx-auto w-full">
-              <div className="flex gap-2 z-50 justify-center items-center">
-                <audio
-                  ref={audio}
-                  src={URL.createObjectURL(file)}
-                  controls
-                ></audio>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    startVideoRendering(file);
-                  }}
-                >
-                  <h3 className="mx-auto my-auto">Render</h3>
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <canvas
-          className="absolute top-0 left-0 -z-20"
-          ref={renderingCanvas}
-          width={600}
-          height={400}
-          hidden
-        ></canvas>
+    <main className=" bg-slate-400 w-full h-full">
+      <div className="flex sticky top-0 bg-white rounded-b-xl w-full z-50">
+        <h1 className="py-5 font-bold text-2xl mx-3">Tuuner</h1>
       </div>
+      <div className="flex w-full md:px-5 lg:px-10 ">
+        <div className="flex flex-col w-full h-full items-center justify-between overflow-hidden border-2 rounded-xl my-3 border-black">
+          <div className="flex justify-between p-5 w-full border-b-2 border-black">
+            <Input
+              className="z-40"
+              type="file"
+              accept="audio/*"
+              onChange={(e) => {
+                setfile(e.target.files[0]);
+              }}
+            ></Input>
+            <select
+              name="visualizers"
+              onChange={(e) => changeFn("type", e.target.value)}
+            >
+              <option value={"straitLine"}>Line</option>
+              <option value={"straitBar"}>Bar</option>
+            </select>
+          </div>
+          <div className="flex my-3 mx-3 w-full">
+            <div
+              className="w-full bg-red-800 items-center justify-between mx-3 border-2 border-black rounded-xl"
+              ref={canvasFrame}
+            >
+              <canvas
+                className="h-full w-full"
+                ref={previewCanvas}
+                height={height}
+                width={width}
+              ></canvas>
+            </div>
+            <dev className="flex bg-yellow-700 mr-3">
+              <h1 className="mx-3">Optios</h1>
+            </dev>
+          </div>
+
+          <canvas
+            className="absolute top-0 left-0 -z-20"
+            ref={renderingCanvas}
+            width={600}
+            height={400}
+            hidden
+          ></canvas>
+        </div>
+      </div>
+
+      {file && (
+        <div className="sticky bottom-0 bg-purple-600 rounded-t-2xl mx-auto w-full">
+          <div className="flex gap-2 z-50 justify-center items-center">
+            <audio ref={audio} src={URL.createObjectURL(file)} controls></audio>
+            <Button
+              variant="outline"
+              onClick={() => {
+                startVideoRendering(file);
+              }}
+            >
+              <h3 className="mx-auto my-auto">Render</h3>
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div>
         {video && (
