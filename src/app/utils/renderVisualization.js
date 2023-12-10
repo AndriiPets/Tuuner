@@ -12,7 +12,6 @@ export async function renderVisualization(args) {
     dataArrayMatrix,
     canvas,
     canvasCtx,
-    numOfBars,
     chunkLength,
     ffmpeg,
     audio,
@@ -74,9 +73,6 @@ export async function renderVisualization(args) {
   const prepareFrames = async () => {
     const canvasHeight = canvas.height;
     const canvasWidth = canvas.width;
-    const bufferLength = dataArrayMatrix[0].length;
-    const barWidth = canvasWidth / numOfBars;
-    let barHeight;
 
     //drawing frame on the shadow canvas and sending it to be processd by the ffmpeg rendering pipline
     for (let i in dataArrayMatrix) {
@@ -94,12 +90,8 @@ export async function renderVisualization(args) {
         canvasCtx: canvasCtx,
         canvasWidth: canvasWidth,
         canvasHeight: canvasHeight,
-        bufferLength: bufferLength,
         x: x,
-        barWidth: barWidth,
-        barHeight: barHeight,
         dataArray: freqencyDataArray,
-        numBars: numOfBars,
       });
 
       //sleep(1000 * chunkLength)

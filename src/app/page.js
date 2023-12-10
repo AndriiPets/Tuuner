@@ -2,13 +2,14 @@
 import Image from "next/image";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { useState, useEffect, useRef } from "react";
-import { visualize } from "./utils/visualisers";
+import { visualize } from "./visualizer/visualisers";
 import { renderVisualization } from "./utils/renderVisualization";
 import { loadRenderFrames } from "./utils/loadRenderingFrames";
 
 //ui
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ListVisualizer from "@/components/ui/listVisualizer";
 
 const VISUALIZER = visualize;
 const NUM_BARS = 60;
@@ -35,9 +36,46 @@ export default function Home() {
 
   //visualizer options
   const visualizerOptions = useRef({
+    Visualizer_1: {
+      type: "straitLine",
+      background: "none",
+      numBars: NUM_BARS,
+    },
+  });
+  const defaultOptions = useRef({
     type: "straitLine",
     background: "none",
+    numBars: NUM_BARS,
   });
+  const [visualizers, setVisualizers] = useState(["Visualizer_1"]);
+  const [visualizerNames, setVisualizersNames] = useState([
+    "Visualiser_2",
+    "Visualiser_3",
+  ]);
+
+  //TODO delete visualizers, pass to each visualizer individual options
+
+  function addVisualizer() {
+    if (visualizerNames.length > 0) {
+      const newName = visualizerNames[0];
+      setVisualizers([...visualizers, newName]);
+      visualizerNames.splice(0, 1);
+      visualizerOptions.current = {
+        ...visualizerOptions.current,
+        [newName]: { ...defaultOptions.current },
+      };
+    } else {
+      window.alert("Cannot add more than three visualizers!");
+    }
+  }
+
+  function removeVisualizer(name) {
+    console.log(`deleting ${name}`);
+    delete visualizerOptions.current[name];
+    setVisualizers(visualizers.filter((item) => item !== name));
+    setVisualizersNames([...visualizerNames, name]);
+    console.log(visualizerNames);
+  }
 
   //Monitors window size and resizes canvas accordingly
   useEffect(() => {
@@ -74,7 +112,6 @@ export default function Home() {
           dataArrayMatrix: rendering_data.data_chunks,
           canvas: renderingCanvas.current,
           canvasCtx: canvasCtx,
-          numOfBars: NUM_BARS,
           chunkLength: rendering_data.lengthPerChunk,
           ffmpeg: ffmpeg,
           audio: { url: url, type: audioType },
@@ -107,11 +144,8 @@ export default function Home() {
         function animate() {
           let x = 0;
           let data = featuresRef.current.amplitudeSpectrum;
-          const barWidth = previewCanvas.current.width / NUM_BARS;
 
           if (data) {
-            const bufferLength = data.length;
-            let barHeight;
             canvasCtx.clearRect(
               0,
               0,
@@ -124,12 +158,8 @@ export default function Home() {
               canvasCtx: canvasCtx,
               canvasWidth: previewCanvas.current.width,
               canvasHeight: previewCanvas.current.height,
-              bufferLength: bufferLength,
               x: x,
-              barWidth: barWidth,
-              barHeight: barHeight,
               dataArray: data,
-              numBars: NUM_BARS,
             });
           }
           setTimeout(() => {
@@ -155,9 +185,9 @@ export default function Home() {
     }
   }, [file]);
 
-  const changeFn = (optionType, option) => {
-    visualizerOptions.current = {
-      ...visualizerOptions.current,
+  const changeFn = (optionType, option, viualizerName) => {
+    visualizerOptions.current[viualizerName] = {
+      ...visualizerOptions.current[viualizerName],
       type: option,
     };
     console.log(visualizerOptions.current);
@@ -179,13 +209,6 @@ export default function Home() {
                 setfile(e.target.files[0]);
               }}
             ></Input>
-            <select
-              name="visualizers"
-              onChange={(e) => changeFn("type", e.target.value)}
-            >
-              <option value={"straitLine"}>Line</option>
-              <option value={"straitBar"}>Bar</option>
-            </select>
           </div>
           <div className="flex my-3 mx-3 w-full">
             <div
@@ -199,9 +222,17 @@ export default function Home() {
                 width={width}
               ></canvas>
             </div>
-            <dev className="flex bg-yellow-700 mr-3">
-              <h1 className="mx-3">Optios</h1>
-            </dev>
+            <div className="flex flex-col bg-yellow-700 mr-3">
+              {visualizers.map((item, i) => (
+                <ListVisualizer
+                  name={item}
+                  changeFn={changeFn}
+                  removeFn={removeVisualizer}
+                  key={i}
+                />
+              ))}
+              <Button onClick={addVisualizer}>Add Visualizer</Button>
+            </div>
           </div>
 
           <canvas
