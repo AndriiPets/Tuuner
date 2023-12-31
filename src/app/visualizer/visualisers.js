@@ -1,6 +1,6 @@
 const VISUALIZERS_MAP = new Map([
-  ["straitBar", drawSpiralBarVisualizer],
-  ["straitLine", drawStraitBarVisualizer],
+  ["circle", drawSpiralBarVisualizer],
+  ["line", drawStraitLineVisualizer],
 ]);
 
 export function visualize(args) {
@@ -8,7 +8,6 @@ export function visualize(args) {
 
   for (const visName in options) {
     const visOptions = options[visName];
-    let numBars = visOptions.numBars;
     let visualizationFunc = VISUALIZERS_MAP.get(visOptions.type);
     if (!visualizationFunc) {
       console.log("Invalid input");
@@ -20,7 +19,7 @@ export function visualize(args) {
       canvasHeight,
       x,
       dataArray,
-      numBars
+      visOptions
     );
   }
 }
@@ -31,14 +30,14 @@ function drawStraitBarVisualizer(
   canvasHeight,
   x,
   dataArray,
-  numBars
+  options
 ) {
   canvasCtx.lineWidth = 2;
-  canvasCtx.strokeStyle = "rgb(0, 0, 0)";
+  canvasCtx.strokeStyle = "#FFFFFF";
   canvasCtx.beginPath();
 
   let prev = 0;
-  const bars = numBars * 2;
+  const bars = options?.numBars * 2;
 
   const bufferLength = dataArray.length;
   const barWidth = (canvasWidth * 1.0) / bars;
@@ -80,15 +79,16 @@ function drawStraitLineVisualizer(
   canvasHeight,
   x,
   dataArray,
-  numBars
+  options
 ) {
+  const color = options?.color;
   canvasCtx.lineWidth = 2;
-  canvasCtx.strokeStyle = "rgb(0, 0, 0)";
+  canvasCtx.strokeStyle = color;
   canvasCtx.beginPath();
 
   const applyChunking = true;
 
-  let bars = numBars * 2;
+  let bars = options?.numBars * 2;
   let prev = 0;
   const bufferLength = dataArray.length;
   const chunkLen = bufferLength / bars;
@@ -203,10 +203,10 @@ function drawSpiralBarVisualizer(
   canvasHeight,
   x,
   dataArray,
-  numBars
+  options
 ) {
-  const radius = 50;
-  const bars = numBars;
+  const radius = options?.radius;
+  const bars = options?.numBars;
   const bufferLength = dataArray.length;
   const chunkLen = bufferLength / bars;
   const barWidth = (canvasWidth * 1.0) / bars;

@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { visualize } from "./visualizer/visualisers";
 import { renderVisualization } from "./utils/renderVisualization";
 import { loadRenderFrames } from "./utils/loadRenderingFrames";
@@ -10,6 +10,11 @@ import { loadRenderFrames } from "./utils/loadRenderingFrames";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ListVisualizer from "@/components/ui/listVisualizer";
+import AudioElement from "@/components/ui/audioElement";
+
+//store
+import { useOptions } from "@/store/optionsStore";
+import { useShallow } from "zustand/react/shallow";
 
 const VISUALIZER = visualize;
 const NUM_BARS = 60;
@@ -34,23 +39,37 @@ export default function Home() {
   const ffmpegRef = useRef(new FFmpeg());
   const ffmpeg = ffmpegRef.current;
 
+  //store
+  const opts = useRef();
+  const addStoreVisualizer = useOptions(
+    useShallow((state) => state.addVisualizer)
+  );
+  const deleteStoreVisualizer = useOptions(
+    useShallow((state) => state.deleteVisualizer)
+  );
+  const storeOptions = useOptions(
+    useShallow((state) => (opts.current = state.current))
+  );
+
   //visualizer options
-  const visualizerOptions = useRef({
-    Visualizer_1: {
-      type: "straitLine",
-      background: "none",
-      numBars: NUM_BARS,
-    },
-  });
   const defaultOptions = useRef({
-    type: "straitLine",
+    type: "line",
+    style: "bars",
     background: "none",
     numBars: NUM_BARS,
+    radius: 50,
+    color: "rgb(0, 0, 0)",
+    position: "down",
+    orientation: "up",
+  });
+
+  const visualizerOptions = useRef({
+    Visualizer_1: { ...defaultOptions.current },
   });
   const [visualizers, setVisualizers] = useState(["Visualizer_1"]);
   const [visualizerNames, setVisualizersNames] = useState([
-    "Visualiser_2",
-    "Visualiser_3",
+    "Visualizer_2",
+    "Visualizer_3",
   ]);
 
   //TODO delete visualizers, pass to each visualizer individual options
@@ -60,18 +79,20 @@ export default function Home() {
       const newName = visualizerNames[0];
       setVisualizers([...visualizers, newName]);
       visualizerNames.splice(0, 1);
-      visualizerOptions.current = {
-        ...visualizerOptions.current,
-        [newName]: { ...defaultOptions.current },
-      };
+      console.log(`name ${newName}`);
+      addStoreVisualizer(newName);
+      //visualizerOptions.current = {
+      //  ...visualizerOptions.current,
+      //  [newName]: { ...defaultOptions.current },
+      //};
     } else {
       window.alert("Cannot add more than three visualizers!");
     }
   }
 
   function removeVisualizer(name) {
-    console.log(`deleting ${name}`);
-    delete visualizerOptions.current[name];
+    //console.log(`deleting ${name}`);
+    deleteStoreVisualizer(name);
     setVisualizers(visualizers.filter((item) => item !== name));
     setVisualizersNames([...visualizerNames, name]);
     console.log(visualizerNames);
@@ -108,7 +129,7 @@ export default function Home() {
         });
         await renderVisualization({
           visualisationFunc: VISUALIZER,
-          options: visualizerOptions.current,
+          options: opts.current,
           dataArrayMatrix: rendering_data.data_chunks,
           canvas: renderingCanvas.current,
           canvasCtx: canvasCtx,
@@ -123,6 +144,8 @@ export default function Home() {
       startRenderingPipeline();
     }
   }
+
+  const memoizedVideoRendering = useCallback(startVideoRendering, [file]);
 
   //prevew visualization displayed with real-time data
   useEffect(() => {
@@ -154,7 +177,7 @@ export default function Home() {
             );
 
             VISUALIZER({
-              options: visualizerOptions.current,
+              options: opts.current,
               canvasCtx: canvasCtx,
               canvasWidth: previewCanvas.current.width,
               canvasHeight: previewCanvas.current.height,
@@ -188,9 +211,8 @@ export default function Home() {
   const changeFn = (optionType, option, viualizerName) => {
     visualizerOptions.current[viualizerName] = {
       ...visualizerOptions.current[viualizerName],
-      type: option,
+      [optionType]: option,
     };
-    console.log(visualizerOptions.current);
   };
 
   return (
@@ -226,7 +248,6 @@ export default function Home() {
               {visualizers.map((item, i) => (
                 <ListVisualizer
                   name={item}
-                  changeFn={changeFn}
                   removeFn={removeVisualizer}
                   key={i}
                 />
@@ -246,19 +267,11 @@ export default function Home() {
       </div>
 
       {file && (
-        <div className="sticky bottom-0 bg-purple-600 rounded-t-2xl mx-auto w-full">
-          <div className="flex gap-2 z-50 justify-center items-center">
-            <audio ref={audio} src={URL.createObjectURL(file)} controls></audio>
-            <Button
-              variant="outline"
-              onClick={() => {
-                startVideoRendering(file);
-              }}
-            >
-              <h3 className="mx-auto my-auto">Render</h3>
-            </Button>
-          </div>
-        </div>
+        <AudioElement
+          audio={audio}
+          file={file}
+          rendering={memoizedVideoRendering}
+        ></AudioElement>
       )}
 
       <div>
