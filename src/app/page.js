@@ -1,16 +1,17 @@
 "use client";
-import Image from "next/image";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { visualize } from "./visualizer/visualisers";
 import { renderVisualization } from "./utils/renderVisualization";
 import { loadRenderFrames } from "./utils/loadRenderingFrames";
+import { bufferToBase64 } from "./utils/bufferConversion";
 
 //ui
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ListVisualizer from "@/components/ui/listVisualizer";
 import AudioElement from "@/components/ui/audioElement";
+import ViewMenu from "@/components/ui/viewMenu";
 
 //store
 import { useOptions } from "@/store/optionsStore";
@@ -23,6 +24,7 @@ const FPS = 60;
 export default function Home() {
   const renderingCanvas = useRef();
   const previewCanvas = useRef();
+  const backgroundCanvas = useRef();
   const canvasFrame = useRef();
   const audio = useRef();
   const isInitialAudioMount = useRef(0);
@@ -30,6 +32,8 @@ export default function Home() {
   const [video, setVideo] = useState("");
   const [file, setfile] = useState("");
   const featuresRef = useRef([]);
+  const [backgroundBuffer, setBackdroundBuffer] = useState("");
+  const [backgroundDataURL, setBackgroundDataURL] = useState("");
 
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(580);
@@ -113,6 +117,8 @@ export default function Home() {
     };
   }, []);
 
+  //SETTING VISUALIZATIONS TO RENDER
+
   //send visualization to the rendering pipeline
   async function startVideoRendering(file) {
     if (!load) {
@@ -146,6 +152,8 @@ export default function Home() {
   }
 
   const memoizedVideoRendering = useCallback(startVideoRendering, [file]);
+
+  //SETTING REAL-TIME VISUALIZATION
 
   //prevew visualization displayed with real-time data
   useEffect(() => {
@@ -208,38 +216,81 @@ export default function Home() {
     }
   }, [file]);
 
-  const changeFn = (optionType, option, viualizerName) => {
-    visualizerOptions.current[viualizerName] = {
-      ...visualizerOptions.current[viualizerName],
-      [optionType]: option,
+  //SETTING THE BACKGROUND IMAGE
+
+  useEffect(() => {
+    //use file reader to convert buffer from the input to dataURL
+    let fileReader,
+      isCancel = false;
+    if (backgroundBuffer) {
+      fileReader = new FileReader();
+      fileReader.onload = (e) => {
+        const result = e.target.result;
+        if (result && !isCancel) {
+          setBackgroundDataURL(result);
+        }
+      };
+      fileReader.readAsDataURL(new Blob([backgroundBuffer]));
+    }
+
+    return () => {
+      isCancel = true;
+      if (fileReader && fileReader.readyState === 1) {
+        fileReader.abort();
+      }
     };
-  };
+  }, [backgroundBuffer]);
+
+  useEffect(() => {
+    console.log(backgroundDataURL);
+
+    const url = backgroundDataURL;
+    const bgCanvasCtx = backgroundCanvas.current.getContext("2d");
+
+    const img = new Image(); // Create new img
+    //make shure image can load in time before displaying
+    img.addEventListener(
+      "load",
+      () => {
+        bgCanvasCtx.drawImage(img, 0, 0);
+      },
+      false
+    );
+    img.src = url;
+  }, [backgroundDataURL]);
 
   return (
     <main className=" bg-slate-400 w-full h-full">
       <div className="flex sticky top-0 bg-white rounded-b-xl w-full z-50">
         <h1 className="py-5 font-bold text-2xl mx-3">Tuuner</h1>
       </div>
-      <div className="flex w-full md:px-5 lg:px-10 ">
+      <div className="flex w-full md:px-5 lg:px-10 sm:px-2">
         <div className="flex flex-col w-full h-full items-center justify-between overflow-hidden border-2 rounded-xl my-3 border-black">
           <div className="flex justify-between p-5 w-full border-b-2 border-black">
             <Input
-              className="z-40"
+              className="z-40 rounded-xl bg-transparent border-black border-2"
               type="file"
               accept="audio/*"
               onChange={(e) => {
                 setfile(e.target.files[0]);
               }}
             ></Input>
+            <ViewMenu setBG={setBackdroundBuffer}></ViewMenu>
           </div>
           <div className="flex my-3 mx-3 w-full">
             <div
-              className="w-full bg-red-800 items-center justify-between mx-3 border-2 border-black rounded-xl"
+              className="w-full grid mx-3 border-2 border-black rounded-xl"
               ref={canvasFrame}
             >
               <canvas
-                className="h-full w-full"
+                className="h-full w-full col-start-1 row-start-1 z-10 bg-transparent rounded-xl"
                 ref={previewCanvas}
+                height={height}
+                width={width}
+              ></canvas>
+              <canvas
+                className="h-full w-full col-start-1 row-start-1 z-0  bg-red-400 rounded-xl"
+                ref={backgroundCanvas}
                 height={height}
                 width={width}
               ></canvas>
@@ -252,7 +303,9 @@ export default function Home() {
                   key={i}
                 />
               ))}
-              <Button onClick={addVisualizer}>Add Visualizer</Button>
+              <Button variant="ghost" onClick={addVisualizer}>
+                Add Visualizer
+              </Button>
             </div>
           </div>
 

@@ -22,7 +22,7 @@ function ListVisualizer({name, removeFn}) {
     <div className="flex flex-col border-2 rounded-xl border-black">
                 <div className="flex justify-between items-center border-b-2 border-black">
                   <h3 className='mx-3'>{name}</h3>
-                  <Button onClick={() => removeFn(name)}>x</Button>
+                  <Button variant="gohst" onClick={() => removeFn(name)}>x</Button>
                 </div>
                 <div className="flex flex-col my-2 mx-2 gap-2">
                   <select

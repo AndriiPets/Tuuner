@@ -20,7 +20,7 @@ export async function loadRenderFrames(url, audioContext) {
     let result = Meyda.extract("amplitudeSpectrum", chunk);
 
     //ffts fill spectrum buffers
-    let ffts = getFFTs(result);
+    //let ffts = getFFTs(result);
     console.log(result);
     data_chunks.push(result);
   }

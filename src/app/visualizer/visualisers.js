@@ -206,6 +206,7 @@ function drawSpiralBarVisualizer(
   options
 ) {
   const radius = options?.radius;
+  const color = options?.color;
   const bars = options?.numBars;
   const bufferLength = dataArray.length;
   const chunkLen = bufferLength / bars;
@@ -229,10 +230,8 @@ function drawSpiralBarVisualizer(
     //canvasCtx.moveTo(0, radius + barHeight);
 
     canvasCtx.rotate((i * Math.PI) / bars);
-    const red = (i * barHeight) / 10;
-    const green = i * 4;
-    const blue = barHeight / 2;
-    canvasCtx.fillStyle = "rgb(" + red + "," + green + "," + blue + ")";
+
+    canvasCtx.fillStyle = color;
     canvasCtx.fillRect(0, radius, barWidth - 8, barHeight + 2);
 
     //canvasCtx.lineTo(0, radius + barHeight);
@@ -246,7 +245,7 @@ function drawSpiralBarVisualizer(
     canvasCtx.save();
     canvasCtx.translate(canvasWidth / 2, canvasHeight / 2);
     canvasCtx.rotate(((i * Math.PI) / bars) * -1);
-    canvasCtx.fillStyle = "rgb(" + red + "," + green + "," + blue + ")";
+    canvasCtx.fillStyle = color;
     canvasCtx.fillRect(0, radius, barWidth - 8, barHeight + 2);
     canvasCtx.restore();
   }
