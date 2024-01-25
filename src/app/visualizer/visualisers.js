@@ -1,10 +1,12 @@
 const VISUALIZERS_MAP = new Map([
-  ["circle", drawSpiralBarVisualizer],
-  ["line", drawStraitLineVisualizer],
+  ["radial", drawSpiralBarVisualizer],
+  ["line", drawStraitBarVisualizer],
+  ["wave", drawStraitLineVisualizer],
 ]);
 
 export function visualize(args) {
   const { options, canvasCtx, canvasWidth, canvasHeight, x, dataArray } = args;
+  //console.log(dataArray);
 
   for (const visName in options) {
     const visOptions = options[visName];
@@ -32,12 +34,10 @@ function drawStraitBarVisualizer(
   dataArray,
   options
 ) {
-  canvasCtx.lineWidth = 2;
-  canvasCtx.strokeStyle = "#FFFFFF";
-  canvasCtx.beginPath();
-
   let prev = 0;
   const bars = options?.numBars * 2;
+  const color = options?.color;
+  const pos_y = options?.position_y;
 
   const bufferLength = dataArray.length;
   const barWidth = (canvasWidth * 1.0) / bars;
@@ -50,27 +50,15 @@ function drawStraitBarVisualizer(
       ? Math.max(...dataArray.slice(prev, prev + chunkLen)) * 5.0
       : dataArray[i];
     prev += chunkLen;
-    const red = (i * barHeight) / 10;
-    const green = i * 4;
-    const blue = barHeight / 2;
-    canvasCtx.fillStyle = "rgb(" + red + "," + green + "," + blue + ")";
-    //console.log(`bar w:${barWidth}, bar h:${barHeight}`); //"rgb(" + red + "," + green + "," + blue + ")";
-    //if (i === 0) {
-    //  canvasCtx.moveTo(x, canvasHeight / 2 - barHeight);
-    //} else {
-    //  canvasCtx.lineTo(x, canvasHeight / 2 - barHeight);
-    //}
-    canvasCtx.fillRect(
-      x,
-      canvasHeight - barHeight,
-      barWidth - 2,
-      barHeight + 2
-    );
+    //const red = (i * barHeight) / 10;
+    //const green = i * 4;
+    //const blue = barHeight / 2;
+    //canvasCtx.fillStyle = "rgb(" + red + "," + green + "," + blue + ")";
+    canvasCtx.fillStyle = color;
+
+    canvasCtx.fillRect(x, pos_y, barWidth - 2, barHeight + 2);
     x += barWidth;
   }
-
-  canvasCtx.lineTo(canvasWidth, canvasHeight / 2);
-  //canvasCtx.stroke();
 }
 
 function drawStraitLineVisualizer(
@@ -210,8 +198,9 @@ function drawSpiralBarVisualizer(
   const bars = options?.numBars;
   const bufferLength = dataArray.length;
   const chunkLen = bufferLength / bars;
-  const barWidth = (canvasWidth * 1.0) / bars;
   const twoPI = Math.PI * 2;
+  const barWidth = (radius * twoPI) / (bars * 5);
+  //console.log((radius / twoPI) * 2.0);
 
   let prev = 0;
   let barHeight;
@@ -232,7 +221,7 @@ function drawSpiralBarVisualizer(
     canvasCtx.rotate((i * Math.PI) / bars);
 
     canvasCtx.fillStyle = color;
-    canvasCtx.fillRect(0, radius, barWidth - 8, barHeight + 2);
+    canvasCtx.fillRect(0, radius, barWidth, barHeight + 2);
 
     //canvasCtx.lineTo(0, radius + barHeight);
     //canvasCtx.arc(0, radius + barHeight, 2, 0, twoPI);
@@ -246,7 +235,7 @@ function drawSpiralBarVisualizer(
     canvasCtx.translate(canvasWidth / 2, canvasHeight / 2);
     canvasCtx.rotate(((i * Math.PI) / bars) * -1);
     canvasCtx.fillStyle = color;
-    canvasCtx.fillRect(0, radius, barWidth - 8, barHeight + 2);
+    canvasCtx.fillRect(0, radius, barWidth, barHeight + 2);
     canvasCtx.restore();
   }
 }

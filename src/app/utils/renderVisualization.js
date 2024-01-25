@@ -17,6 +17,7 @@ export async function renderVisualization(args) {
     audio,
     setVideo,
     setLoad,
+    background,
   } = args;
 
   const load = async () => {
@@ -73,6 +74,7 @@ export async function renderVisualization(args) {
   const prepareFrames = async () => {
     const canvasHeight = canvas.height;
     const canvasWidth = canvas.width;
+    console.log(`background: ${background.toDataURL()}`);
 
     //drawing frame on the shadow canvas and sending it to be processd by the ffmpeg rendering pipline
     for (let i in dataArrayMatrix) {
@@ -83,8 +85,22 @@ export async function renderVisualization(args) {
       let x = 0;
 
       canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+
       canvasCtx.fillStyle = "white";
       canvasCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      canvasCtx.drawImage(
+        background,
+        0,
+        0,
+        background.width,
+        background.height,
+        0,
+        0,
+        canvasWidth,
+        canvasHeight
+      );
+
       visualisationFunc({
         options: options,
         canvasCtx: canvasCtx,

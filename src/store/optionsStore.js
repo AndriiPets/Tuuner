@@ -9,7 +9,8 @@ const defaultOptions = {
   numBars: 60,
   radius: 50,
   color: "rgb(0, 0, 0)",
-  position: "down",
+  position_x: 0,
+  position_y: 0,
   orientation: "up",
 };
 

@@ -30,20 +30,18 @@ function ListVisualizer({name, removeFn}) {
                     onChange={(e) => addOptionToVisualiser("type", e.target.value, name)}
                   >
                     <option value={"line"}>Line</option>
-                    <option value={"circle"}>Circle</option>
-                  </select>
-                  <select
-                    name="type"
-                    onChange={(e) => addOptionToVisualiser("style", e.target.value, name)}
-                  >
-                    <option value={"bars"}>Bars</option>
+                    <option value={"radial"}>Radial</option>
                     <option value={"wave"}>Wave</option>
                   </select>
+                  <div className='flex my-2 mx-2'>
+                    <Slider defaultValue={[50]} max={100} step={1} onPointerUp={(e) => addOptionToVisualiser("position_y", e.target.ariaValueNow
+, name)} />
+                    </div>
                   <div className='flex gap-2'>
                     <p>Color</p>
                     <ColorPicker color={color} onChange={setColor} />
                   </div>
-                  {visualizerType === "circle" && (
+                  {visualizerType === "radial" && (
                     <div className='flex my-2 mx-2'>
                     <Slider defaultValue={[50]} max={100} step={1} onPointerUp={(e) => addOptionToVisualiser("radius", e.target.ariaValueNow
 , name)} />

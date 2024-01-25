@@ -5,6 +5,7 @@ import { visualize } from "./visualizer/visualisers";
 import { renderVisualization } from "./utils/renderVisualization";
 import { loadRenderFrames } from "./utils/loadRenderingFrames";
 import { bufferToBase64 } from "./utils/bufferConversion";
+import { getFFTs } from "./utils/getFFTs";
 
 //ui
 import { Button } from "@/components/ui/button";
@@ -144,6 +145,7 @@ export default function Home() {
           audio: { url: url, type: audioType },
           setVideo: setVideo,
           setLoad: setLoad,
+          background: backgroundCanvas.current,
         });
       }
 
@@ -151,7 +153,10 @@ export default function Home() {
     }
   }
 
-  const memoizedVideoRendering = useCallback(startVideoRendering, [file]);
+  const memoizedVideoRendering = useCallback(startVideoRendering, [
+    file,
+    backgroundCanvas,
+  ]);
 
   //SETTING REAL-TIME VISUALIZATION
 
@@ -202,10 +207,10 @@ export default function Home() {
         const analyzer = Meyda.createMeydaAnalyzer({
           audioContext: audioContext,
           source: source,
-          bufferSize: 2048,
+          bufferSize: 1024,
+          windowingFunction: "blackman",
           featureExtractors: ["amplitudeSpectrum"],
           callback: (features) => {
-            //console.log(features);
             featuresRef.current = features;
           },
         });
